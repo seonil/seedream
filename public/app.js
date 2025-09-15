@@ -1,6 +1,7 @@
 const form = document.getElementById('gen-form');
 const statusEl = document.getElementById('status');
 const outputEl = document.getElementById('output');
+const aspectEl = document.getElementById('aspect_ratio');
 
 async function filesToDataUrls(fileList) {
   const files = Array.from(fileList || []);
@@ -73,6 +74,7 @@ form.addEventListener('submit', async (e) => {
     const size = document.getElementById('size').value.trim();
     const watermark = document.getElementById('watermark').value === 'true';
     const count = document.getElementById('count').valueAsNumber || 1;
+    const gen_mode = document.getElementById('gen_mode').value;
     const seq = document.getElementById('seq').value;
     const max_images = document.getElementById('max_images').valueAsNumber;
     const seed = document.getElementById('seed').value === '' ? undefined : Number(document.getElementById('seed').value);
@@ -81,20 +83,20 @@ form.addEventListener('submit', async (e) => {
 
     const image = await filesToDataUrls(files);
 
-    const body = { model, prompt, response_format, watermark };
+    const body = { model, prompt, response_format, watermark, images_count: count, mode: gen_mode };
     if (image) body.image = image;
     if (size) body.size = size;
     // Batch images: Prefer 'count' input. If >1 and model supports (seedream-4.0), set seq auto and max_images=count.
     let effectiveCount = Math.max(1, Math.min(15, Number(count) || 1));
     const supportsBatch = model.startsWith('seedream-4-0');
-    if (effectiveCount > 1) {
+    if (effectiveCount > 1 && gen_mode === 'batch') {
       if (supportsBatch) {
         body.sequential_image_generation = 'auto';
         body.sequential_image_generation_options = { max_images: effectiveCount };
       } else {
         statusEl.textContent = '현재 모델은 다중 이미지 생성을 지원하지 않아 1장으로 진행합니다.';
       }
-    } else {
+    } else if (gen_mode !== 'batch') {
       // Fall back to manual advanced control if user configured it
       if (seq) body.sequential_image_generation = seq;
       if (!Number.isNaN(max_images) && max_images > 0) {
@@ -125,3 +127,13 @@ form.addEventListener('submit', async (e) => {
     setBusy(false);
   }
 });
+
+// Aspect ratio → size helper
+if (aspectEl) {
+  aspectEl.addEventListener('change', () => {
+    const v = aspectEl.value;
+    if (!v) return; // Custom
+    const sizeInput = document.getElementById('size');
+    sizeInput.value = v;
+  });
+}

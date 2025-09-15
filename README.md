@@ -35,6 +35,8 @@ Notes
 - For seedream-3.0-t2i and seededit-3.0-i2i, optional parameters seed and guidance_scale are available.
 - Default watermark is false (server enforces unless overridden by UI).
 - Images count: Set desired number (1–15). For seedream-4.0, the app auto-configures batch mode (sequential auto + max_images). Other models only support 1.
+ - Exact count mode: Choose "Exact" to generate exactly N images by issuing N single-image requests server-side and aggregating results (one browser request, multiple upstream calls). Use "Batch" if you prefer model-decided count up to N (seedream-4.0 only).
+ - Aspect ratio helper: Pick an aspect ratio to auto-fill the Size with recommended pixel dimensions (e.g., 1:1 → 2048x2048). You can still type a custom size.
 
 API Proxy
 - POST /api/generate forwards a JSON body to {API_BASE}/api/v3/images/generations

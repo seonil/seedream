@@ -76,33 +76,89 @@ app.post('/api/generate', async (req, res) => {
     stream,
     guidance_scale,
     response_format,
-    watermark
+    watermark,
+    images_count,
+    mode
   } = req.body || {};
 
   if (!model || !prompt) {
     return res.status(400).json({ error: { message: 'model and prompt are required' } });
   }
 
-  // Build payload matching API spec
-  const payload = {
+  // Build payload matching API spec (base)
+  const basePayload = {
     model,
     prompt,
     // Default watermark to false unless explicitly overridden by client
     watermark: false,
   };
 
-  if (image != null) payload.image = image; // supports string or array
-  if (size) payload.size = size;
-  if (typeof seed === 'number') payload.seed = seed;
-  if (sequential_image_generation) payload.sequential_image_generation = sequential_image_generation; // 'auto' | 'disabled'
-  if (sequential_image_generation_options) payload.sequential_image_generation_options = sequential_image_generation_options;
-  if (typeof stream === 'boolean') payload.stream = stream; // default false
-  if (typeof guidance_scale === 'number') payload.guidance_scale = guidance_scale; // not for seedream-4.0
-  if (response_format) payload.response_format = response_format; // 'url' | 'b64_json'
-  if (typeof watermark === 'boolean') payload.watermark = watermark;
+  if (image != null) basePayload.image = image; // supports string or array
+  if (size) basePayload.size = size;
+  if (typeof seed === 'number') basePayload.seed = seed;
+  if (sequential_image_generation) basePayload.sequential_image_generation = sequential_image_generation; // 'auto' | 'disabled'
+  if (sequential_image_generation_options) basePayload.sequential_image_generation_options = sequential_image_generation_options;
+  if (typeof stream === 'boolean') basePayload.stream = stream; // default false
+  if (typeof guidance_scale === 'number') basePayload.guidance_scale = guidance_scale; // not for seedream-4.0
+  if (response_format) basePayload.response_format = response_format; // 'url' | 'b64_json'
+  if (typeof watermark === 'boolean') basePayload.watermark = watermark;
+
+  const count = Math.max(1, Math.min(15, Number(images_count) || 1));
+  const exact = (mode === 'exact');
+
+  // Exact count mode: fan out multiple single-image requests, aggregate results
+  if (exact && count > 1) {
+    const singlePayload = { ...basePayload, sequential_image_generation: 'disabled' };
+    delete singlePayload.sequential_image_generation_options;
+    singlePayload.stream = false;
+    try {
+      const tasks = Array.from({ length: count }, () =>
+        axios.post(GENERATE_URL, singlePayload, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${API_KEY}`,
+          },
+          timeout: 120000,
+          maxContentLength: Infinity,
+          maxBodyLength: Infinity,
+        }).then(r => ({ ok: true, r })).catch(err => ({ ok: false, err }))
+      );
+
+      const results = await Promise.all(tasks);
+
+      const data = [];
+      let outputTokens = 0;
+      let generated = 0;
+      for (const item of results) {
+        if (item.ok) {
+          const r = item.r;
+          const arr = Array.isArray(r.data?.data) ? r.data.data : [];
+          data.push(...arr);
+          if (r.data?.usage?.output_tokens) outputTokens += Number(r.data.usage.output_tokens) || 0;
+          if (r.data?.usage?.generated_images) generated += Number(r.data.usage.generated_images) || 0;
+          else generated += arr.length;
+        } else {
+          const status = item.err?.response?.status || 500;
+          const msg = item.err?.response?.data?.error?.message || item.err?.message || 'request failed';
+          data.push({ error: { code: String(status), message: msg } });
+        }
+      }
+
+      return res.status(200).json({
+        model,
+        created: Math.floor(Date.now() / 1000),
+        data,
+        usage: { generated_images: generated, output_tokens: outputTokens, total_tokens: outputTokens }
+      });
+    } catch (err) {
+      const status = err.response?.status || 500;
+      const data = err.response?.data || { error: { message: err.message } };
+      return res.status(status).json(data);
+    }
+  }
 
   try {
-    const resp = await axios.post(GENERATE_URL, payload, {
+    const resp = await axios.post(GENERATE_URL, basePayload, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${API_KEY}`,
