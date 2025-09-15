@@ -87,6 +87,8 @@ app.post('/api/generate', async (req, res) => {
   const payload = {
     model,
     prompt,
+    // Default watermark to false unless explicitly overridden by client
+    watermark: false,
   };
 
   if (image != null) payload.image = image; // supports string or array

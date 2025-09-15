@@ -33,6 +33,8 @@ Notes
 - Reference images: selected files are converted to data URLs in-browser and forwarded to the API.
 - For seedream-4.0, sequential_image_generation can be set to auto; max_images is respected via sequential_image_generation_options.
 - For seedream-3.0-t2i and seededit-3.0-i2i, optional parameters seed and guidance_scale are available.
+- Default watermark is false (server enforces unless overridden by UI).
+- Images count: Set desired number (1–15). For seedream-4.0, the app auto-configures batch mode (sequential auto + max_images). Other models only support 1.
 
 API Proxy
 - POST /api/generate forwards a JSON body to {API_BASE}/api/v3/images/generations

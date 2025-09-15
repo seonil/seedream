@@ -72,6 +72,7 @@ form.addEventListener('submit', async (e) => {
     const response_format = document.getElementById('response_format').value;
     const size = document.getElementById('size').value.trim();
     const watermark = document.getElementById('watermark').value === 'true';
+    const count = document.getElementById('count').valueAsNumber || 1;
     const seq = document.getElementById('seq').value;
     const max_images = document.getElementById('max_images').valueAsNumber;
     const seed = document.getElementById('seed').value === '' ? undefined : Number(document.getElementById('seed').value);
@@ -83,9 +84,22 @@ form.addEventListener('submit', async (e) => {
     const body = { model, prompt, response_format, watermark };
     if (image) body.image = image;
     if (size) body.size = size;
-    if (seq) body.sequential_image_generation = seq;
-    if (!Number.isNaN(max_images) && max_images > 0) {
-      body.sequential_image_generation_options = { max_images };
+    // Batch images: Prefer 'count' input. If >1 and model supports (seedream-4.0), set seq auto and max_images=count.
+    let effectiveCount = Math.max(1, Math.min(15, Number(count) || 1));
+    const supportsBatch = model.startsWith('seedream-4-0');
+    if (effectiveCount > 1) {
+      if (supportsBatch) {
+        body.sequential_image_generation = 'auto';
+        body.sequential_image_generation_options = { max_images: effectiveCount };
+      } else {
+        statusEl.textContent = '현재 모델은 다중 이미지 생성을 지원하지 않아 1장으로 진행합니다.';
+      }
+    } else {
+      // Fall back to manual advanced control if user configured it
+      if (seq) body.sequential_image_generation = seq;
+      if (!Number.isNaN(max_images) && max_images > 0) {
+        body.sequential_image_generation_options = { max_images };
+      }
     }
     if (typeof seed === 'number' && !Number.isNaN(seed)) body.seed = seed;
     if (typeof guidance_scale === 'number' && !Number.isNaN(guidance_scale)) body.guidance_scale = guidance_scale;
@@ -111,4 +125,3 @@ form.addEventListener('submit', async (e) => {
     setBusy(false);
   }
 });
-

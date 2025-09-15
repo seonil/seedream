@@ -18,6 +18,19 @@
           <label>Prompt</label>
           <textarea id="prompt" name="prompt" rows="4" placeholder="상상한 이미지를 한국어/영어로 입력하세요" required></textarea>
         </div>
+        <div class="grid-2" style="margin-bottom:12px">
+          <div>
+            <label>Images count (1-15, seedream-4.0)</label>
+            <input id="count" type="number" min="1" max="15" value="1" />
+          </div>
+          <div>
+            <label>Watermark</label>
+            <select id="watermark">
+              <option value="true">true</option>
+              <option value="false" selected>false</option>
+            </select>
+          </div>
+        </div>
         <details>
           <summary>Advanced options</summary>
           <div class="grid-2">
@@ -33,22 +46,16 @@
               <input id="size" placeholder="2K or 2048x2048" />
             </div>
             <div>
-              <label>Watermark</label>
-              <select id="watermark">
-                <option value="true" selected>true</option>
-                <option value="false">false</option>
-              </select>
-            </div>
-            <div>
               <label>Sequential gen</label>
               <select id="seq">
-                <option value="disabled" selected>disabled</option>
                 <option value="auto">auto (seedream-4.0)</option>
+                <option value="disabled" selected>disabled</option>
               </select>
+              <p class="hint">이미지 개수 입력 시 자동 설정됨</p>
             </div>
             <div>
               <label>Max images (seq)</label>
-              <input id="max_images" type="number" min="1" max="15" />
+              <input id="max_images" type="number" min="1" max="15" placeholder="이미지 개수와 동일하게 자동 설정" />
             </div>
             <div>
               <label>Seed</label>
@@ -77,4 +84,3 @@
     <script src="/app.js"></script>
   </body>
   </html>
-
