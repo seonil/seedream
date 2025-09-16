@@ -1,22 +1,21 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Seed Text-to-Image</title>
+    <title>Seedream 4.0</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
     <main class="container">
-      <h1>Text-to-Image Generator</h1>
+      <h1>Seedream 4.0</h1>
       <form id="gen-form">
         <div class="row">
-          <label>Model</label>
-          <input id="model" name="model" placeholder="seedream-4-0-250828" value="seedream-4-0-250828" />
-        </div>
-        <div class="row">
           <label>Prompt</label>
-          <textarea id="prompt" name="prompt" rows="4" placeholder="상상한 이미지를 한국어/영어로 입력하세요" required></textarea>
+          <textarea id="prompt" name="prompt" rows="4" placeholder="Describe the image you want" required></textarea>
         </div>
         <div class="grid-2" style="margin-bottom:12px">
           <div>
@@ -24,23 +23,166 @@
             <input id="count" type="number" min="1" max="15" value="1" />
           </div>
           <div>
-            <label>Generation mode</label>
-            <select id="gen_mode">
-              <option value="exact" selected>Exact (정확히 개수만큼)</option>
-              <option value="batch">Batch (최대 개수, 모델 결정)</option>
-            </select>
-          </div>
-          <div>
-            <label>Watermark</label>
-            <select id="watermark">
-              <option value="true">true</option>
-              <option value="false" selected>false</option>
-            </select>
+            <label>Size</label>
+            <input id="size" placeholder="2K or 2048x2048" value="2k" />
           </div>
         </div>
+        <div class="row">
+          <label>Reference images</label>
+          <div id="image-dropzone" class="dropzone" tabindex="0">
+            <p>Click, drag & drop files, or paste from clipboard</p>
+            <div class="dropzone-actions">
+              <button type="button" id="browse-images">Browse files</button>
+              <button type="button" id="clear-images" class="secondary">Clear</button>
+            </div>
+            <input id="images" type="file" accept="image/png,image/jpeg" multiple hidden />
+            <div id="reference-previews" class="thumb-grid" aria-live="polite"></div>
+            <p class="hint" id="dropzone-hint">Up to 10 PNG or JPEG files</p>
+          </div>
+        </div>
+        <details class="preset-panel">
+          <summary>Preset options</summary>
+          <div class="preset-groups">
+<div class="preset-group">
+                  <h4>Expression</h4>
+                  <div class="preset-list">
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="realistic">realistic</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="photorealistic">photorealistic</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="hyperrealistic">hyperrealistic</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="surreal">surreal</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="abstract">abstract</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="minimalist">minimalist</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="detailed">detailed</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="intricate">intricate</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="elaborate">elaborate</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="simple">simple</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="complex">complex</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="dramatic">dramatic</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="serene">serene</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="dynamic">dynamic</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="static">static</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="flowing">flowing</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="geometric">geometric</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="organic">organic</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="symmetrical">symmetrical</button>
+                    <button type="button" class="preset-option" data-preset-category="expression" data-preset-value="asymmetrical">asymmetrical</button>
+                  </div>
+                </div>
+                <div class="preset-group">
+                  <h4>Art Style</h4>
+                  <div class="preset-list">
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="oil painting">oil painting</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="watercolor">watercolor</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="digital art">digital art</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="concept art">concept art</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="anime">anime</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="manga">manga</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="cartoon">cartoon</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="comic book">comic book</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="pixel art">pixel art</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="vector art">vector art</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="3D render">3D render</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="photography">photography</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="vintage">vintage</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="retro">retro</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="cyberpunk">cyberpunk</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="steampunk">steampunk</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="art nouveau">art nouveau</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="impressionist">impressionist</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="baroque">baroque</button>
+                    <button type="button" class="preset-option" data-preset-category="art_style" data-preset-value="renaissance">renaissance</button>
+                  </div>
+                </div>
+                <div class="preset-group">
+                  <h4>Camera</h4>
+                  <div class="preset-list">
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="close-up">close-up</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="medium shot">medium shot</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="wide shot">wide shot</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="extreme wide shot">extreme wide shot</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="bird's eye view">bird's eye view</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="worm's eye view">worm's eye view</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="low angle">low angle</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="high angle">high angle</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="eye level">eye level</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="over shoulder">over shoulder</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="profile view">profile view</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="three-quarter view">three-quarter view</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="full body">full body</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="headshot">headshot</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="macro">macro</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="telephoto">telephoto</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="fisheye">fisheye</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="panoramic">panoramic</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="aerial view">aerial view</button>
+                    <button type="button" class="preset-option" data-preset-category="camera" data-preset-value="underwater view">underwater view</button>
+                  </div>
+                </div>
+                <div class="preset-group">
+                  <h4>Lighting</h4>
+                  <div class="preset-list">
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="golden hour">golden hour</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="blue hour">blue hour</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="sunrise">sunrise</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="sunset">sunset</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="noon sun">noon sun</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="overcast">overcast</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="dramatic lighting">dramatic lighting</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="soft lighting">soft lighting</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="hard lighting">hard lighting</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="backlighting">backlighting</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="rim lighting">rim lighting</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="studio lighting">studio lighting</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="natural lighting">natural lighting</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="neon lighting">neon lighting</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="candlelight">candlelight</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="moonlight">moonlight</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="starlight">starlight</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="volumetric lighting">volumetric lighting</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="cinematic lighting">cinematic lighting</button>
+                    <button type="button" class="preset-option" data-preset-category="lighting" data-preset-value="moody atmosphere">moody atmosphere</button>
+                  </div>
+                </div>
+                <div class="preset-group">
+                  <h4>Quality</h4>
+                  <div class="preset-list">
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="4K">4K</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="8K">8K</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="ultra high resolution">ultra high resolution</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="HDR">HDR</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="ray tracing">ray tracing</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="global illumination">global illumination</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="depth of field">depth of field</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="bokeh">bokeh</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="motion blur">motion blur</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="sharp focus">sharp focus</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="film grain">film grain</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="lens flare">lens flare</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="chromatic aberration">chromatic aberration</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="tilt-shift">tilt-shift</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="vignette">vignette</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="high contrast">high contrast</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="low contrast">low contrast</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="saturated colors">saturated colors</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="desaturated colors">desaturated colors</button>
+                    <button type="button" class="preset-option" data-preset-category="quality" data-preset-value="matte finish">matte finish</button>
+                  </div>
+                </div>          </div>
+        </details>
         <details>
           <summary>Advanced options</summary>
           <div class="grid-2">
+            <div>
+              <label>Model</label>
+              <input id="model" name="model" placeholder="seedream-4-0-250828" value="seedream-4-0-250828" />
+            </div>
+            <div>
+              <label>Generation mode</label>
+              <select id="gen_mode">
+                <option value="exact" selected>Exact (generate exact count)</option>
+                <option value="batch">Batch (model decides max)</option>
+              </select>
+            </div>
             <div>
               <label>Response format</label>
               <select id="response_format">
@@ -49,35 +191,38 @@
               </select>
             </div>
             <div>
-              <label>Size</label>
-              <input id="size" placeholder="2K or 2048x2048" />
+              <label>Watermark</label>
+              <select id="watermark">
+                <option value="true">true</option>
+                <option value="false" selected>false</option>
+              </select>
             </div>
             <div>
-              <label>Aspect ratio (추천 크기 자동 입력)</label>
+              <label>Aspect ratio (apply recommended size)</label>
               <select id="aspect_ratio">
                 <option value="">Custom</option>
-                <option value="2048x2048">1:1 → 2048x2048</option>
-                <option value="2304x1728">4:3 → 2304x1728</option>
-                <option value="1728x2304">3:4 → 1728x2304</option>
-                <option value="2560x1440">16:9 → 2560x1440</option>
-                <option value="1440x2560">9:16 → 1440x2560</option>
-                <option value="2496x1664">3:2 → 2496x1664</option>
-                <option value="1664x2496">2:3 → 1664x2496</option>
-                <option value="3024x1296">21:9 → 3024x1296</option>
+                <option value="2048x2048">1:1 -> 2048x2048</option>
+                <option value="2304x1728">4:3 -> 2304x1728</option>
+                <option value="1728x2304">3:4 -> 1728x2304</option>
+                <option value="2560x1440">16:9 -> 2560x1440</option>
+                <option value="1440x2560">9:16 -> 1440x2560</option>
+                <option value="2496x1664">3:2 -> 2496x1664</option>
+                <option value="1664x2496">2:3 -> 1664x2496</option>
+                <option value="3024x1296">21:9 -> 3024x1296</option>
               </select>
-              <p class="hint">비율을 선택하면 Size 입력에 자동 반영됩니다.</p>
+              <p class="hint">Selecting a ratio updates the size field automatically.</p>
             </div>
             <div>
-              <label>Sequential gen</label>
+              <label>Sequential generation</label>
               <select id="seq">
                 <option value="auto">auto (seedream-4.0)</option>
                 <option value="disabled" selected>disabled</option>
               </select>
-              <p class="hint">이미지 개수 입력 시 자동 설정됨</p>
+              <p class="hint">Batch mode adjusts automatically for supported models.</p>
             </div>
             <div>
               <label>Max images (seq)</label>
-              <input id="max_images" type="number" min="1" max="15" placeholder="이미지 개수와 동일하게 자동 설정" />
+              <input id="max_images" type="number" min="1" max="15" placeholder="Match desired count" />
             </div>
             <div>
               <label>Seed</label>
@@ -85,12 +230,7 @@
             </div>
             <div>
               <label>Guidance scale</label>
-              <input id="guidance_scale" type="number" step="0.1" placeholder="1..10 (no 4.0)" />
-            </div>
-            <div>
-              <label>Reference images</label>
-              <input id="images" type="file" accept="image/png,image/jpeg" multiple />
-              <p class="hint">선택 시 Base64로 전송 (최대 10장)</p>
+              <input id="guidance_scale" type="number" step="0.1" placeholder="1..10 (not for 4.0)" />
             </div>
           </div>
         </details>
@@ -105,4 +245,4 @@
 
     <script src="/app.js"></script>
   </body>
-  </html>
+</html>
