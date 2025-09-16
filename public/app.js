@@ -1,4 +1,4 @@
-﻿const form = document.getElementById('gen-form');
+const form = document.getElementById('gen-form');
 const statusEl = document.getElementById('status');
 const outputEl = document.getElementById('output');
 const aspectEl = document.getElementById('aspect_ratio');
@@ -18,6 +18,8 @@ const PRESET_CATEGORY_LABELS = {
   quality: 'Quality & effects'
 };
 const MAX_REFERENCE_IMAGES = 10;
+const BASE64_EXPANSION_RATIO = 1.37;
+const MAX_PAYLOAD_BYTES = 28 * 1024 * 1024; // ~28MB, leaves headroom under server limit
 let referenceFiles = [];
 let referenceIdCounter = 0;
 
@@ -101,6 +103,10 @@ function renderImages(dataArr, responseFormat) {
     card.appendChild(meta);
     outputEl.appendChild(card);
   }
+}
+
+function estimateReferencePayloadBytes() {
+  return referenceFiles.reduce((total, item) => total + (item.file ? item.file.size : 0), 0);
 }
 
 function updateDropzoneHint() {
@@ -309,6 +315,14 @@ form.addEventListener('submit', async (e) => {
       prompt = prompt + '\n\n[Preset options]\n' + presetSummary;
     }
 
+    const estimatedPayloadBytes = estimateReferencePayloadBytes() * BASE64_EXPANSION_RATIO;
+    if (estimatedPayloadBytes > MAX_PAYLOAD_BYTES) {
+      const totalMb = (estimatedPayloadBytes / (1024 * 1024)).toFixed(1);
+      const limitMb = (MAX_PAYLOAD_BYTES / (1024 * 1024)).toFixed(0);
+      statusEl.textContent = `Reference images are too large (${totalMb} MB). Please reduce the total under ${limitMb} MB.`;
+      return;
+    }
+
     const image = await filesToDataUrls(referenceFiles.map(item => item.file));
 
     const body = { model, prompt, response_format, watermark, images_count: count, mode: gen_mode };
@@ -339,12 +353,24 @@ form.addEventListener('submit', async (e) => {
       body: JSON.stringify(body),
     });
 
-    const json = await resp.json();
-    if (!resp.ok) {
-      console.error(json);
-      throw new Error(json?.error?.message || 'Generation failed');
+    const rawText = await resp.text();
+    let payload = null;
+    if (rawText) {
+      try {
+        payload = JSON.parse(rawText);
+      } catch (parseErr) {
+        if (!resp.ok) {
+          throw new Error(rawText || resp.statusText || 'Generation failed');
+        }
+        throw new Error('Failed to parse response from server.');
+      }
     }
 
+    if (!resp.ok) {
+      throw new Error((payload && payload.error && payload.error.message) || resp.statusText || 'Generation failed');
+    }
+
+    const json = payload || {};
     statusEl.textContent = 'Generated: ' + (json?.usage?.generated_images ?? (json?.data?.length || 0));
     renderImages(json.data || [], response_format);
   } catch (err) {
@@ -362,3 +388,4 @@ if (aspectEl) {
     sizeInput.value = v;
   });
 }
+
